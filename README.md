@@ -47,7 +47,7 @@ cloudtask/
 ├── backend/    # Spring Boot backend services
 ├── docker/     # Docker configurations
 ├── docs/       # Architecture & API documentation
-
+```
 
 ---
 
