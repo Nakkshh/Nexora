@@ -4,16 +4,31 @@
 frontend/node_modules/
 frontend/dist/
 frontend/dist-ssr/
-frontend/.env*
+frontend/.env.local
+frontend/.env.development.local
+frontend/.env.test.local
+frontend/.env.production.local
 frontend/*.local
-!frontend/.env.example
+
+# Keep these for deployment:
+# !frontend/.env.production
+
 
 # ===============================
 # BACKEND (Spring Boot)
 # ===============================
 backend/target/
-backend/.env*
 backend/*.log
+backend/.env.local
+backend/application-local.properties
+
+
+# ===============================
+# DOCKER
+# ===============================
+postgres-data/
+*.log
+
 
 # ===============================
 # NODE / GENERAL
@@ -21,25 +36,33 @@ backend/*.log
 node_modules/
 dist/
 *.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
 
 # ===============================
-# ENV FILES
+# ENV FILES (Local Only)
 # ===============================
-.env
 .env.local
+.env.*.local
+# DO NOT ignore .env.production - needed for deployment
+
 
 # ===============================
 # IDE / EDITORS
 # ===============================
 .idea/
 .vscode/
-.vscode/*
-!.vscode/extensions.json
+.DS_Store
+*.iml
+
 
 # ===============================
 # OS
 # ===============================
 .DS_Store
+Thumbs.db
 *.suo
 *.ntvs*
 *.njsproj

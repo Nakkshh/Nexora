@@ -1,0 +1,11 @@
+node_modules/
+dist/
+dist-ssr/
+.git
+.gitignore
+README.md
+*.log
+.DS_Store
+coverage/
+.vscode/
+.idea/
