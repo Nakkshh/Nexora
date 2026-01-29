@@ -2,12 +2,19 @@ package com.cloudtask.userservice.controller;
 
 import com.cloudtask.userservice.dto.ProjectRequest;
 import com.cloudtask.userservice.entity.Project;
+import com.cloudtask.userservice.entity.ProjectMember;
+import com.cloudtask.userservice.entity.User;
+import com.cloudtask.userservice.repository.ProjectMemberRepository;
+import com.cloudtask.userservice.repository.UserRepository;
+import com.cloudtask.userservice.service.ProjectMemberService;
 import com.cloudtask.userservice.service.ProjectService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/project")
@@ -16,6 +23,9 @@ import java.util.List;
 public class ProjectController {
 
     private final ProjectService projectService;
+    private final ProjectMemberService projectMemberService;
+    private final ProjectMemberRepository projectMemberRepository;
+    private final UserRepository userRepository;
 
     @GetMapping("/test")
     public ResponseEntity<String> test() {
@@ -27,22 +37,58 @@ public class ProjectController {
             @RequestBody ProjectRequest request,
             @RequestParam String firebaseUid
     ) {
+        // Create project
         Project project = projectService.createProject(
                 request.getName(),
                 request.getDescription(),
                 firebaseUid
         );
+
+        // Automatically add creator as OWNER member
+        User owner = userRepository.findByFirebaseUid(firebaseUid)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        
+        ProjectMember ownerMember = new ProjectMember();
+        ownerMember.setProject(project);
+        ownerMember.setUser(owner);
+        ownerMember.setRole(ProjectMember.MemberRole.OWNER);
+        projectMemberRepository.save(ownerMember);
+
         return ResponseEntity.ok(project);
     }
 
     @GetMapping("/user/{firebaseUid}")
     public ResponseEntity<List<Project>> getUserProjects(@PathVariable String firebaseUid) {
-        List<Project> projects = projectService.getUserProjects(firebaseUid);
-        return ResponseEntity.ok(projects);
+        // Get projects owned by user
+        List<Project> ownedProjects = projectService.getUserProjects(firebaseUid);
+
+        // Get projects where user is a member
+        User user = userRepository.findByFirebaseUid(firebaseUid)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        
+        List<ProjectMember> memberships = projectMemberRepository.findByUser(user);
+        List<Project> memberProjects = memberships.stream()
+                .map(ProjectMember::getProject)
+                .filter(project -> !project.getOwner().getId().equals(user.getId())) // Exclude owned projects
+                .collect(Collectors.toList());
+
+        // Combine and return
+        List<Project> allProjects = new ArrayList<>(ownedProjects);
+        allProjects.addAll(memberProjects);
+
+        return ResponseEntity.ok(allProjects);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Project> getProject(@PathVariable Long id) {
+    public ResponseEntity<Project> getProject(
+            @PathVariable Long id,
+            @RequestParam String firebaseUid
+    ) {
+        // Check access
+        if (!projectMemberService.hasAccess(id, firebaseUid)) {
+            return ResponseEntity.status(403).build();
+        }
+
         return projectService.getProjectById(id)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());

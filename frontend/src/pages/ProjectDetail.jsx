@@ -3,7 +3,16 @@ import { useParams, useNavigate } from "react-router-dom";
 import { signOut } from "firebase/auth";
 import { auth } from "../auth/firebase";
 import { useAuth } from "../auth/useAuth";
-import { getProject, getProjectTasks, createTask, updateTaskStatus, deleteTask } from "../services/api";
+import { 
+  getProject, 
+  getProjectTasks, 
+  createTask, 
+  updateTaskStatus, 
+  deleteTask,
+  getProjectMembers,
+  addProjectMember,
+  removeProjectMember
+} from "../services/api";
 
 export default function ProjectDetail() {
   const { id } = useParams();
@@ -11,9 +20,13 @@ export default function ProjectDetail() {
   const navigate = useNavigate();
   const [project, setProject] = useState(null);
   const [tasks, setTasks] = useState([]);
+  const [members, setMembers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showMemberModal, setShowMemberModal] = useState(false);
   const [newTask, setNewTask] = useState({ title: "", description: "" });
+  const [newMember, setNewMember] = useState({ email: "", role: "MEMBER" });
+  const [activeTab, setActiveTab] = useState("tasks"); // "tasks" or "members"
 
   useEffect(() => {
     loadProjectData();
@@ -21,12 +34,14 @@ export default function ProjectDetail() {
 
   const loadProjectData = async () => {
     try {
-      const [projectData, tasksData] = await Promise.all([
-        getProject(id),
-        getProjectTasks(id),
+      const [projectData, tasksData, membersData] = await Promise.all([
+        getProject(id, user.uid),
+        getProjectTasks(id, user.uid),
+        getProjectMembers(id),
       ]);
       setProject(projectData);
       setTasks(tasksData);
+      setMembers(membersData);
     } catch (error) {
       console.error("Failed to load project data:", error);
     } finally {
@@ -37,7 +52,7 @@ export default function ProjectDetail() {
   const handleCreateTask = async (e) => {
     e.preventDefault();
     try {
-      await createTask(newTask.title, newTask.description, id);
+      await createTask(newTask.title, newTask.description, id, user.uid);
       setNewTask({ title: "", description: "" });
       setShowCreateModal(false);
       loadProjectData();
@@ -46,9 +61,34 @@ export default function ProjectDetail() {
     }
   };
 
+  const handleAddMember = async (e) => {
+    e.preventDefault();
+    try {
+      await addProjectMember(id, newMember.email, newMember.role, user.uid);
+      setNewMember({ email: "", role: "MEMBER" });
+      setShowMemberModal(false);
+      loadProjectData();
+    } catch (error) {
+      console.error("Failed to add member:", error);
+      alert("Failed to add member. Make sure the user exists and is not already a member.");
+    }
+  };
+
+  const handleRemoveMember = async (userId) => {
+    if (window.confirm("Remove this member from the project?")) {
+      try {
+        await removeProjectMember(id, userId, user.uid);
+        loadProjectData();
+      } catch (error) {
+        console.error("Failed to remove member:", error);
+        alert("Failed to remove member. You may not have permission.");
+      }
+    }
+  };
+
   const handleStatusChange = async (taskId, newStatus) => {
     try {
-      await updateTaskStatus(taskId, newStatus);
+      await updateTaskStatus(taskId, newStatus, user.uid);
       loadProjectData();
     } catch (error) {
       console.error("Failed to update task status:", error);
@@ -58,7 +98,7 @@ export default function ProjectDetail() {
   const handleDeleteTask = async (taskId) => {
     if (window.confirm("Delete this task?")) {
       try {
-        await deleteTask(taskId);
+        await deleteTask(taskId, user.uid);
         loadProjectData();
       } catch (error) {
         console.error("Failed to delete task:", error);
@@ -75,6 +115,11 @@ export default function ProjectDetail() {
     return tasks.filter((task) => task.status === status);
   };
 
+  const isOwnerOrAdmin = () => {
+    const currentUserMember = members.find(m => m.userEmail === user.email);
+    return currentUserMember && (currentUserMember.role === "OWNER" || currentUserMember.role === "ADMIN");
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 flex items-center justify-center">
@@ -89,116 +134,211 @@ export default function ProjectDetail() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100">
       {/* Modern Navbar */}
-        <nav className="fixed top-0 w-full z-50 bg-white/90 backdrop-blur-xl border-b border-gray-200/50 shadow-lg">
-          <div className="w-full px-6 lg:px-12">
-            <div className="flex justify-between items-center h-16">
-            {/* Logo with Back Button - Far Left */}
+      <nav className="fixed top-0 w-full z-50 bg-white/90 backdrop-blur-xl border-b border-gray-200/50 shadow-lg">
+        <div className="w-full px-6 lg:px-12">
+          <div className="flex justify-between items-center h-16">
             <div className="flex items-center gap-3">
-                <button
+              <button
                 onClick={() => navigate("/dashboard")}
                 className="p-2 hover:bg-gray-100 rounded-2xl transition-colors"
-                >
+              >
                 <svg className="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
                 </svg>
-                </button>
-                <h1 className="text-2xl font-black text-gray-900">⏰ CloudTask</h1>
+              </button>
+              <h1 className="text-2xl font-black text-gray-900">⏰ CloudTask</h1>
             </div>
-
-            {/* User & Logout - Far Right */}
             <div className="flex items-center gap-4">
-                <div className="hidden sm:flex items-center gap-3 px-4 py-2 bg-gray-50 rounded-2xl border border-gray-200">
+              <div className="hidden sm:flex items-center gap-3 px-4 py-2 bg-gray-50 rounded-2xl border border-gray-200">
                 <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-bold text-sm">
-                    {user?.displayName?.[0]?.toUpperCase() || user?.email?.[0]?.toUpperCase()}
+                  {user?.displayName?.[0]?.toUpperCase() || user?.email?.[0]?.toUpperCase()}
                 </div>
                 <div className="text-left">
-                    <p className="text-sm font-semibold text-gray-900">{user?.displayName || "User"}</p>
-                    <p className="text-xs text-gray-500">{user?.email}</p>
+                  <p className="text-sm font-semibold text-gray-900">{user?.displayName || "User"}</p>
+                  <p className="text-xs text-gray-500">{user?.email}</p>
                 </div>
-                </div>
-                <button
+              </div>
+              <button
                 onClick={handleLogout}
                 className="px-6 py-2 text-sm font-semibold text-gray-700 hover:text-gray-900 border border-gray-200 rounded-2xl hover:border-gray-300 hover:bg-gray-50 transition-all duration-300"
-                >
+              >
                 Logout
-                </button>
-            </div>
+              </button>
             </div>
           </div>
-        </nav>
-
+        </div>
+      </nav>
 
       {/* Project Header */}
       <div className="pt-24 pb-8 px-6 lg:px-12 max-w-7xl mx-auto border-b border-gray-200">
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6 mb-6">
           <div>
             <h2 className="text-5xl font-black text-gray-900 mb-2">{project?.name}</h2>
             <p className="text-xl text-gray-600">{project?.description || "No description"}</p>
           </div>
-          <button
-            onClick={() => setShowCreateModal(true)}
-            className="group relative px-8 py-4 bg-gray-900 text-white rounded-3xl font-bold shadow-2xl hover:shadow-3xl transition-all duration-300 hover:scale-105 overflow-hidden"
-          >
-            <span className="relative z-10 flex items-center gap-2">
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-              </svg>
-              New Task
-            </span>
-            <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-purple-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-          </button>
+          {activeTab === "tasks" && (
+            <button
+              onClick={() => setShowCreateModal(true)}
+              className="group relative px-8 py-4 bg-gray-900 text-white rounded-3xl font-bold shadow-2xl hover:shadow-3xl transition-all duration-300 hover:scale-105 overflow-hidden"
+            >
+              <span className="relative z-10 flex items-center gap-2">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                </svg>
+                New Task
+              </span>
+              <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-purple-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+            </button>
+          )}
+          {activeTab === "members" && isOwnerOrAdmin() && (
+            <button
+              onClick={() => setShowMemberModal(true)}
+              className="group relative px-8 py-4 bg-gray-900 text-white rounded-3xl font-bold shadow-2xl hover:shadow-3xl transition-all duration-300 hover:scale-105 overflow-hidden"
+            >
+              <span className="relative z-10 flex items-center gap-2">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+                </svg>
+                Add Member
+              </span>
+              <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-purple-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+            </button>
+          )}
         </div>
 
-        {/* Stats */}
-        <div className="flex gap-6 mt-8">
-          <div className="flex items-center gap-2">
-            <div className="w-3 h-3 bg-orange-400 rounded-full"></div>
-            <span className="text-sm font-semibold text-gray-600">{getTasksByStatus("TODO").length} To Do</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="w-3 h-3 bg-blue-400 rounded-full"></div>
-            <span className="text-sm font-semibold text-gray-600">{getTasksByStatus("IN_PROGRESS").length} In Progress</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="w-3 h-3 bg-green-400 rounded-full"></div>
-            <span className="text-sm font-semibold text-gray-600">{getTasksByStatus("DONE").length} Done</span>
-          </div>
+        {/* Tabs */}
+        <div className="flex gap-4 border-b border-gray-200">
+          <button
+            onClick={() => setActiveTab("tasks")}
+            className={`px-6 py-3 font-bold transition-all relative ${
+              activeTab === "tasks"
+                ? "text-gray-900"
+                : "text-gray-400 hover:text-gray-600"
+            }`}
+          >
+            Tasks
+            {activeTab === "tasks" && (
+              <div className="absolute bottom-0 left-0 right-0 h-1 bg-gray-900 rounded-t-lg"></div>
+            )}
+          </button>
+          <button
+            onClick={() => setActiveTab("members")}
+            className={`px-6 py-3 font-bold transition-all relative ${
+              activeTab === "members"
+                ? "text-gray-900"
+                : "text-gray-400 hover:text-gray-600"
+            }`}
+          >
+            Members ({members.length})
+            {activeTab === "members" && (
+              <div className="absolute bottom-0 left-0 right-0 h-1 bg-gray-900 rounded-t-lg"></div>
+            )}
+          </button>
         </div>
       </div>
 
-      {/* Kanban Board */}
+      {/* Content Area */}
       <div className="py-8 px-6 lg:px-12 max-w-7xl mx-auto">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* TODO Column */}
-          <KanbanColumn
-            title="📋 To Do"
-            status="TODO"
-            tasks={getTasksByStatus("TODO")}
-            onStatusChange={handleStatusChange}
-            onDelete={handleDeleteTask}
-            colorClass="from-orange-400 to-orange-500"
-          />
+        {activeTab === "tasks" ? (
+          // Kanban Board
+          <>
+            {/* Stats */}
+            <div className="flex gap-6 mb-8">
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 bg-orange-400 rounded-full"></div>
+                <span className="text-sm font-semibold text-gray-600">{getTasksByStatus("TODO").length} To Do</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 bg-blue-400 rounded-full"></div>
+                <span className="text-sm font-semibold text-gray-600">{getTasksByStatus("IN_PROGRESS").length} In Progress</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 bg-green-400 rounded-full"></div>
+                <span className="text-sm font-semibold text-gray-600">{getTasksByStatus("DONE").length} Done</span>
+              </div>
+            </div>
 
-          {/* IN_PROGRESS Column */}
-          <KanbanColumn
-            title="🔄 In Progress"
-            status="IN_PROGRESS"
-            tasks={getTasksByStatus("IN_PROGRESS")}
-            onStatusChange={handleStatusChange}
-            onDelete={handleDeleteTask}
-            colorClass="from-blue-400 to-blue-500"
-          />
-
-          {/* DONE Column */}
-          <KanbanColumn
-            title="✅ Done"
-            status="DONE"
-            tasks={getTasksByStatus("DONE")}
-            onStatusChange={handleStatusChange}
-            onDelete={handleDeleteTask}
-            colorClass="from-green-400 to-green-500"
-          />
-        </div>
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              <KanbanColumn
+                title="📋 To Do"
+                status="TODO"
+                tasks={getTasksByStatus("TODO")}
+                onStatusChange={handleStatusChange}
+                onDelete={handleDeleteTask}
+                colorClass="from-orange-400 to-orange-500"
+              />
+              <KanbanColumn
+                title="🔄 In Progress"
+                status="IN_PROGRESS"
+                tasks={getTasksByStatus("IN_PROGRESS")}
+                onStatusChange={handleStatusChange}
+                onDelete={handleDeleteTask}
+                colorClass="from-blue-400 to-blue-500"
+              />
+              <KanbanColumn
+                title="✅ Done"
+                status="DONE"
+                tasks={getTasksByStatus("DONE")}
+                onStatusChange={handleStatusChange}
+                onDelete={handleDeleteTask}
+                colorClass="from-green-400 to-green-500"
+              />
+            </div>
+          </>
+        ) : (
+          // Members List
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {members.map((member, index) => (
+              <div
+                key={member.id}
+                className="bg-white rounded-3xl p-6 border-2 border-gray-100 hover:border-gray-200 shadow-xl hover:shadow-2xl transition-all duration-300"
+                style={{ animationDelay: `${index * 50}ms` }}
+              >
+                <div className="flex items-start justify-between mb-4">
+                  <div className="flex items-center gap-3">
+                    <div className={`w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-lg ${
+                      member.role === "OWNER" ? "bg-gradient-to-br from-purple-500 to-purple-600" :
+                      member.role === "ADMIN" ? "bg-gradient-to-br from-blue-500 to-blue-600" :
+                      "bg-gradient-to-br from-gray-400 to-gray-500"
+                    }`}>
+                      {member.displayName?.[0]?.toUpperCase() || member.userEmail?.[0]?.toUpperCase()}
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-bold text-gray-900">{member.displayName || "User"}</h3>
+                      <p className="text-sm text-gray-500">{member.userEmail}</p>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="flex items-center justify-between pt-4 border-t border-gray-100">
+                  <span className={`px-3 py-1 rounded-full text-xs font-bold ${
+                    member.role === "OWNER" ? "bg-purple-100 text-purple-700" :
+                    member.role === "ADMIN" ? "bg-blue-100 text-blue-700" :
+                    "bg-gray-100 text-gray-700"
+                  }`}>
+                    {member.role}
+                  </span>
+                  
+                  {member.role !== "OWNER" && isOwnerOrAdmin() && (
+                    <button
+                      onClick={() => handleRemoveMember(member.userId)}
+                      className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all duration-300"
+                      title="Remove member"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  )}
+                </div>
+                
+                <p className="text-xs text-gray-400 mt-3">
+                  Joined {new Date(member.joinedAt).toLocaleDateString()}
+                </p>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Create Task Modal */}
@@ -267,11 +407,81 @@ export default function ProjectDetail() {
           </div>
         </div>
       )}
+
+      {/* Add Member Modal */}
+      {showMemberModal && (
+        <div
+          className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center px-6 z-50 animate-fadeIn"
+          onClick={() => setShowMemberModal(false)}
+        >
+          <div
+            className="bg-white rounded-3xl p-10 max-w-lg w-full shadow-2xl border border-gray-200 animate-scaleIn"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between mb-8">
+              <h2 className="text-3xl font-black text-gray-900">Add Member</h2>
+              <button
+                onClick={() => setShowMemberModal(false)}
+                className="p-2 hover:bg-gray-100 rounded-2xl transition-colors"
+              >
+                <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            <form onSubmit={handleAddMember} className="space-y-6">
+              <div>
+                <label className="block text-sm font-bold text-gray-900 mb-3">
+                  User Email
+                </label>
+                <input
+                  type="email"
+                  value={newMember.email}
+                  onChange={(e) => setNewMember({ ...newMember, email: e.target.value })}
+                  className="w-full px-6 py-4 border-2 border-gray-200 rounded-2xl focus:outline-none focus:border-gray-900 transition-colors text-gray-900 font-medium"
+                  placeholder="user@example.com"
+                  required
+                />
+                <p className="text-xs text-gray-500 mt-2">User must have an account already</p>
+              </div>
+              <div>
+                <label className="block text-sm font-bold text-gray-900 mb-3">
+                  Role
+                </label>
+                <select
+                  value={newMember.role}
+                  onChange={(e) => setNewMember({ ...newMember, role: e.target.value })}
+                  className="w-full px-6 py-4 border-2 border-gray-200 rounded-2xl focus:outline-none focus:border-gray-900 transition-colors text-gray-900 font-medium"
+                >
+                  <option value="MEMBER">Member - Can view and edit tasks</option>
+                  <option value="ADMIN">Admin - Can manage members and tasks</option>
+                </select>
+              </div>
+              <div className="flex gap-4 pt-4">
+                <button
+                  type="button"
+                  onClick={() => setShowMemberModal(false)}
+                  className="flex-1 px-6 py-4 border-2 border-gray-200 rounded-2xl font-bold text-gray-700 hover:bg-gray-50 transition-all duration-300"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="flex-1 px-6 py-4 bg-gray-900 text-white rounded-2xl font-bold hover:bg-gray-800 shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105"
+                >
+                  Add Member
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
 
-// Kanban Column Component
+// Kanban Column Component (unchanged)
 function KanbanColumn({ title, status, tasks, onStatusChange, onDelete, colorClass }) {
   const statusOptions = ["TODO", "IN_PROGRESS", "DONE"];
   const currentIndex = statusOptions.indexOf(status);
@@ -308,7 +518,6 @@ function KanbanColumn({ title, status, tasks, onStatusChange, onDelete, colorCla
                 {task.description || "No description"}
               </p>
 
-              {/* Actions */}
               <div className="flex items-center justify-between pt-3 border-t border-gray-200">
                 <div className="flex gap-2">
                   {currentIndex > 0 && (

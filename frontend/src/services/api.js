@@ -54,8 +54,8 @@ export const getUserProjects = async (firebaseUid) => {
   return response.json();
 };
 
-export const getProject = async (projectId) => {
-  const response = await fetch(`${API_BASE_URL}/project/${projectId}`);
+export const getProject = async (projectId, firebaseUid) => {
+  const response = await fetch(`${API_BASE_URL}/project/${projectId}?firebaseUid=${firebaseUid}`);
 
   if (!response.ok) {
     throw new Error('Failed to fetch project');
@@ -75,8 +75,8 @@ export const deleteProject = async (projectId, firebaseUid) => {
 };
 
 // ============= TASK APIs =============
-export const createTask = async (title, description, projectId) => {
-  const response = await fetch(`${API_BASE_URL}/task`, {
+export const createTask = async (title, description, projectId, firebaseUid) => {
+  const response = await fetch(`${API_BASE_URL}/task?firebaseUid=${firebaseUid}`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -91,8 +91,8 @@ export const createTask = async (title, description, projectId) => {
   return response.json();
 };
 
-export const getProjectTasks = async (projectId) => {
-  const response = await fetch(`${API_BASE_URL}/task/project/${projectId}`);
+export const getProjectTasks = async (projectId, firebaseUid) => {
+  const response = await fetch(`${API_BASE_URL}/task/project/${projectId}?firebaseUid=${firebaseUid}`);
 
   if (!response.ok) {
     throw new Error('Failed to fetch tasks');
@@ -101,8 +101,8 @@ export const getProjectTasks = async (projectId) => {
   return response.json();
 };
 
-export const updateTaskStatus = async (taskId, status) => {
-  const response = await fetch(`${API_BASE_URL}/task/${taskId}/status?status=${status}`, {
+export const updateTaskStatus = async (taskId, status, firebaseUid) => {
+  const response = await fetch(`${API_BASE_URL}/task/${taskId}/status?status=${status}&firebaseUid=${firebaseUid}`, {
     method: 'PATCH',
   });
 
@@ -113,12 +113,49 @@ export const updateTaskStatus = async (taskId, status) => {
   return response.json();
 };
 
-export const deleteTask = async (taskId) => {
-  const response = await fetch(`${API_BASE_URL}/task/${taskId}`, {
+export const deleteTask = async (taskId, firebaseUid) => {
+  const response = await fetch(`${API_BASE_URL}/task/${taskId}?firebaseUid=${firebaseUid}`, {
     method: 'DELETE',
   });
 
   if (!response.ok) {
     throw new Error('Failed to delete task');
+  }
+};
+
+// ============= PROJECT MEMBER APIs =============
+export const getProjectMembers = async (projectId) => {
+  const response = await fetch(`${API_BASE_URL}/project/${projectId}/members`);
+
+  if (!response.ok) {
+    throw new Error('Failed to fetch members');
+  }
+
+  return response.json();
+};
+
+export const addProjectMember = async (projectId, userEmail, role, requestorFirebaseUid) => {
+  const response = await fetch(`${API_BASE_URL}/project/${projectId}/members?requestorFirebaseUid=${requestorFirebaseUid}`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ userEmail, role }),
+  });
+
+  if (!response.ok) {
+    throw new Error('Failed to add member');
+  }
+
+  return response.json();
+};
+
+export const removeProjectMember = async (projectId, userId, requestorFirebaseUid) => {
+  const response = await fetch(`${API_BASE_URL}/project/${projectId}/members/${userId}?requestorFirebaseUid=${requestorFirebaseUid}`, {
+    method: 'DELETE',
+  });
+
+  if (!response.ok) {
+    throw new Error('Failed to remove member');
   }
 };
