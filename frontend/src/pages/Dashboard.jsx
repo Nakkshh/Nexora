@@ -76,7 +76,14 @@ export default function Dashboard() {
         <div className="w-full px-6 lg:px-12">
           <div className="flex justify-between items-center h-16">
             {/* Logo - Far Left */}
-            <h1 className="text-2xl font-black text-gray-900">⏰ CloudTask</h1>
+            <div className="flex items-center space-x-3">
+              <img 
+                src="/cloudtask-icon.svg" 
+                alt="CloudTask" 
+                className="w-10 h-10"
+              />
+              <h1 className="text-2xl font-black text-gray-900">CloudTask</h1>
+            </div>
 
             {/* User & Logout - Far Right */}
             <div className="flex items-center gap-4">

@@ -146,7 +146,14 @@ export default function ProjectDetail() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
                 </svg>
               </button>
-              <h1 className="text-2xl font-black text-gray-900">⏰ CloudTask</h1>
+              <div className="flex items-center space-x-3">
+                <img 
+                  src="/cloudtask-icon.svg" 
+                  alt="CloudTask" 
+                  className="w-10 h-10"
+                />
+                <h1 className="text-2xl font-black text-gray-900">CloudTask</h1>
+              </div>
             </div>
             <div className="flex items-center gap-4">
               <div className="hidden sm:flex items-center gap-3 px-4 py-2 bg-gray-50 rounded-2xl border border-gray-200">

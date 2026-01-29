@@ -1,0 +1,62 @@
+<svg
+  width="512"
+  height="512"
+  viewBox="0 0 512 512"
+  xmlns="http://www.w3.org/2000/svg"
+  fill="none"
+>
+  <defs>
+    <linearGradient id="g1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#4ADEDE"/>
+      <stop offset="100%" stop-color="#6366F1"/>
+    </linearGradient>
+
+    <linearGradient id="g2" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#6366F1"/>
+      <stop offset="100%" stop-color="#EC4899"/>
+    </linearGradient>
+
+    <linearGradient id="g3" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#EC4899"/>
+      <stop offset="100%" stop-color="#F59E0B"/>
+    </linearGradient>
+  </defs>
+
+  <!-- CENTERED GROUP -->
+  <g transform="translate(-30, 0)">
+
+    <!-- Blue bar -->
+    <rect
+      x="160"
+      y="150"
+      width="70"
+      height="220"
+      rx="35"
+      transform="rotate(-12 160 150)"
+      fill="url(#g1)"
+    />
+
+    <!-- Purple bar -->
+    <rect
+      x="225"
+      y="120"
+      width="80"
+      height="270"
+      rx="40"
+      transform="rotate(-12 225 120)"
+      fill="url(#g2)"
+    />
+
+    <!-- Orange bar -->
+    <rect
+      x="310"
+      y="150"
+      width="70"
+      height="220"
+      rx="35"
+      transform="rotate(-12 310 150)"
+      fill="url(#g3)"
+    />
+
+  </g>
+</svg>

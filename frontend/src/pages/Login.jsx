@@ -67,7 +67,14 @@ export default function Login() {
         </button>
 
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-black text-gray-900 mb-2">⏰ CloudTask</h1>
+          <div className="flex items-center justify-center mb-4">
+            <img 
+              src="/cloudtask-icon.svg" 
+              alt="CloudTask Logo" 
+              className="w-16 h-16 animate-bounce-slow"
+            />
+          </div>
+          <h1 className="text-3xl font-black text-gray-900 mb-2">CloudTask</h1>
           <p className="text-gray-600">Welcome back!</p>
         </div>
 

@@ -51,7 +51,7 @@ export default function Register() {
 
   return (
     <div 
-      className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center px-6 z-50"
+      className="fixed inset-0 backdrop-blur-xl flex items-center justify-center px-6 z-50"
       onClick={handleBackdropClick}
     >
       <div className="relative w-full max-w-md bg-white rounded-3xl shadow-2xl border border-gray-200 p-8 animate-scale-in">
@@ -67,7 +67,14 @@ export default function Register() {
         </button>
 
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-black text-gray-900 mb-2">⏰ CloudTask</h1>
+          <div className="flex items-center justify-center mb-4">
+            <img 
+              src="/cloudtask-icon.svg" 
+              alt="CloudTask Logo" 
+              className="w-16 h-16 animate-bounce-slow"
+            />
+          </div>
+          <h1 className="text-3xl font-black text-gray-900 mb-2">CloudTask</h1>
           <p className="text-gray-600">Create your account</p>
         </div>
 

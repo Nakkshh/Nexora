@@ -4,10 +4,12 @@ import { useAuth } from '../auth/useAuth';
 import { signOut } from 'firebase/auth';
 import { auth } from '../auth/firebase';
 
+
 const Navbar = () => {
   const [scrolled, setScrolled] = useState(false);
   const { user } = useAuth();
   const navigate = useNavigate();
+
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20);
@@ -15,10 +17,12 @@ const Navbar = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+
   const handleLogout = async () => {
     await signOut(auth);
     navigate('/');
   };
+
 
   return (
     <nav className={`fixed top-0 w-full z-50 transition-all duration-300 backdrop-blur-xl ${
@@ -28,10 +32,19 @@ const Navbar = () => {
     }`}>
       <div className="w-full px-6 lg:px-12">
         <div className="flex justify-between items-center h-16">
-          {/* Logo */}
-          <Link to="/" className="text-2xl font-black text-gray-900">
-            ⏰ CloudTask
+          
+          {/* Logo with Icon */}
+          <Link to="/" className="flex items-center space-x-3 group">
+            <img 
+              src="/cloudtask-icon.svg" 
+              alt="CloudTask" 
+              className="w-10 h-10 transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3"
+            />
+            <span className="text-2xl font-black text-gray-900 ">
+              CloudTask
+            </span>
           </Link>
+
 
           {/* Auth Buttons (Conditional) */}
           <div className="flex items-center space-x-3">
@@ -72,5 +85,6 @@ const Navbar = () => {
     </nav>
   );
 };
+
 
 export default Navbar;
