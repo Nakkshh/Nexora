@@ -18,13 +18,18 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOriginPatterns(Arrays.asList(
-            "http://localhost:3000",
+        
+        // Allow both local and deployed frontend
+        config.setAllowedOrigins(Arrays.asList(
+            "http://localhost:5173",
             "https://cloudtask-prod.vercel.app"
         ));
+        
         config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
         config.setAllowedHeaders(Arrays.asList("*"));
         config.setAllowCredentials(true);
+        config.setMaxAge(3600L);  // Cache preflight for 1 hour
+        
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);
         return source;

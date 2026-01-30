@@ -1,5 +1,9 @@
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8081/api';
 
+// Debug log
+console.log('🔗 API Backend URL:', API_BASE_URL);
+
+
 // ============= USER APIs =============
 export const syncUserProfile = async (user) => {
   try {
@@ -26,6 +30,7 @@ export const syncUserProfile = async (user) => {
     throw error;
   }
 };
+
 
 // ============= PROJECT APIs =============
 export const createProject = async (name, description, firebaseUid) => {
@@ -73,6 +78,7 @@ export const deleteProject = async (projectId, firebaseUid) => {
     throw new Error('Failed to delete project');
   }
 };
+
 
 // ============= TASK APIs =============
 export const createTask = async (title, description, projectId, firebaseUid) => {
@@ -123,6 +129,67 @@ export const deleteTask = async (taskId, firebaseUid) => {
   }
 };
 
+// 🆕 NEW: Assign task to a user
+export const assignTask = async (taskId, assigneeFirebaseUid, requestorFirebaseUid, assigneeName = null, assigneeEmail = null) => {
+  const requestBody = { 
+    assigneeUserId: assigneeFirebaseUid,
+    assigneeName: assigneeName,
+    assigneeEmail: assigneeEmail,
+    assigneePhoto: null
+  };
+  
+  console.log('════════════════════════════════════════');
+  console.log('🔍 SENDING ASSIGN TASK REQUEST');
+  console.log('════════════════════════════════════════');
+  console.log('Task ID:', taskId);
+  console.log('Assignee Firebase UID:', assigneeFirebaseUid);
+  console.log('Assignee Name:', assigneeName);
+  console.log('Assignee Email:', assigneeEmail);
+  console.log('Requestor Firebase UID:', requestorFirebaseUid);
+  console.log('Request Body:', requestBody);
+  console.log('════════════════════════════════════════');
+  
+  const url = `${API_BASE_URL}/task/${taskId}/assign?requestorFirebaseUid=${requestorFirebaseUid}`;
+  console.log('URL:', url);
+  
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(requestBody),
+  });
+
+  console.log('Response Status:', response.status);
+  
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    console.error('════════════════════════════════════════');
+    console.error('❌ ASSIGN TASK FAILED');
+    console.error('════════════════════════════════════════');
+    console.error('Status:', response.status);
+    console.error('Error Data:', errorData);
+    console.error('════════════════════════════════════════');
+    throw new Error(errorData.error || 'Failed to assign task');
+  }
+
+  const result = await response.json();
+  console.log('✅ Task assigned successfully!', result);
+  return result;
+};
+
+// 🆕 NEW: Get all tasks assigned to a specific user
+export const getMyTasks = async (firebaseUid) => {
+  const response = await fetch(`${API_BASE_URL}/task/assignee/${firebaseUid}`);
+
+  if (!response.ok) {
+    throw new Error('Failed to fetch assigned tasks');
+  }
+
+  return response.json();
+};
+
+
 // ============= PROJECT MEMBER APIs =============
 export const getProjectMembers = async (projectId) => {
   const response = await fetch(`${API_BASE_URL}/project/${projectId}/members`);
@@ -158,4 +225,38 @@ export const removeProjectMember = async (projectId, userId, requestorFirebaseUi
   if (!response.ok) {
     throw new Error('Failed to remove member');
   }
+};
+
+export const assignMultipleTasks = async (taskId, assignees, requestorFirebaseUid) => {
+  const requestBody = {
+    assignees: assignees.map(a => ({
+      firebaseUid: a.firebaseUid,
+      name: a.displayName || a.name,
+      email: a.userEmail || a.email,
+      photoUrl: a.photoUrl || null
+    }))
+  };
+  
+  console.log('🔍 Assigning multiple users:', requestBody);
+  
+  const response = await fetch(
+    `${API_BASE_URL}/task/${taskId}/assign-multiple?requestorFirebaseUid=${requestorFirebaseUid}`,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(requestBody),
+    }
+  );
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    console.error('❌ Assign multiple failed:', errorData);
+    throw new Error(errorData.error || 'Failed to assign multiple users');
+  }
+
+  const result = await response.json();
+  console.log('✅ Multiple users assigned!', result);
+  return result;
 };

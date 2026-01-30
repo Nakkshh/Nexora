@@ -11,6 +11,8 @@ public class MemberResponse {
     private Long userId;
     private String userEmail;
     private String displayName;
+    private String firebaseUid;  // 🆕 ADDED THIS!
+    private String photoUrl;     // 🆕 BONUS: Also added photo
     private String role;
     private LocalDateTime joinedAt;
 
@@ -20,6 +22,8 @@ public class MemberResponse {
         response.setUserId(member.getUser().getId());
         response.setUserEmail(member.getUser().getEmail());
         response.setDisplayName(member.getUser().getDisplayName());
+        response.setFirebaseUid(member.getUser().getFirebaseUid());  // 🆕 ADDED THIS!
+        response.setPhotoUrl(member.getUser().getPhotoUrl());        // 🆕 ADDED THIS!
         response.setRole(member.getRole().name());
         response.setJoinedAt(member.getJoinedAt());
         return response;

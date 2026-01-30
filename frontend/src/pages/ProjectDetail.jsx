@@ -3,6 +3,8 @@ import { useParams, useNavigate } from "react-router-dom";
 import { signOut } from "firebase/auth";
 import { auth } from "../auth/firebase";
 import { useAuth } from "../auth/useAuth";
+import AssigneeDropdown from "../components/AssigneeDropdown";
+import MultiAssignDropdown from "../components/MultiAssignDropdown";  // ← ADDED
 import { 
   getProject, 
   getProjectTasks, 
@@ -11,7 +13,9 @@ import {
   deleteTask,
   getProjectMembers,
   addProjectMember,
-  removeProjectMember
+  removeProjectMember,
+  assignTask,
+  assignMultipleTasks  // ← ADDED
 } from "../services/api";
 
 export default function ProjectDetail() {
@@ -24,9 +28,11 @@ export default function ProjectDetail() {
   const [loading, setLoading] = useState(true);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showMemberModal, setShowMemberModal] = useState(false);
-  const [newTask, setNewTask] = useState({ title: "", description: "" });
+  const [newTask, setNewTask] = useState({ title: "", description: "", assigneeUid: "" });
   const [newMember, setNewMember] = useState({ email: "", role: "MEMBER" });
-  const [activeTab, setActiveTab] = useState("tasks"); // "tasks" or "members"
+  const [activeTab, setActiveTab] = useState("tasks");
+  const [assigningTask, setAssigningTask] = useState(null);
+  const [assigneeFilter, setAssigneeFilter] = useState("all");
 
   useEffect(() => {
     loadProjectData();
@@ -39,6 +45,9 @@ export default function ProjectDetail() {
         getProjectTasks(id, user.uid),
         getProjectMembers(id),
       ]);
+      
+      console.log('🔍 Members data structure:', membersData);
+      
       setProject(projectData);
       setTasks(tasksData);
       setMembers(membersData);
@@ -52,12 +61,59 @@ export default function ProjectDetail() {
   const handleCreateTask = async (e) => {
     e.preventDefault();
     try {
-      await createTask(newTask.title, newTask.description, id, user.uid);
-      setNewTask({ title: "", description: "" });
+      const createdTask = await createTask(newTask.title, newTask.description, id, user.uid);
+      
+      if (newTask.assigneeUid && createdTask.id) {
+        await assignTask(createdTask.id, newTask.assigneeUid, user.uid);
+      }
+      
+      setNewTask({ title: "", description: "", assigneeUid: "" });
       setShowCreateModal(false);
       loadProjectData();
     } catch (error) {
       console.error("Failed to create task:", error);
+    }
+  };
+
+  // eslint-disable-next-line no-unused-vars
+  const handleAssignTask = async (taskId, assigneeUid) => {
+    try {
+      setAssigningTask(taskId);
+      
+      const member = members.find(m => m.firebaseUid === assigneeUid);
+      
+      const assigneeName = member?.displayName || member?.userEmail;
+      const assigneeEmail = member?.userEmail;
+      
+      await assignTask(taskId, assigneeUid, user.uid, assigneeName, assigneeEmail);
+      loadProjectData();
+    } catch (error) {
+      console.error("Failed to assign task:", error);
+      alert("Failed to assign task: " + error.message);
+    } finally {
+      setAssigningTask(null);
+    }
+  };
+
+  // ← NEW FUNCTION ADDED
+  const handleMultiAssign = async (taskId, selectedMembers) => {
+    try {
+      setAssigningTask(taskId);
+      
+      if (selectedMembers.length === 0) {
+        // Unassign all
+        await assignTask(taskId, null, user.uid, null, null);
+      } else {
+        // Assign multiple
+        await assignMultipleTasks(taskId, selectedMembers, user.uid);
+      }
+      
+      loadProjectData();
+    } catch (error) {
+      console.error("Failed to assign members:", error);
+      alert("Failed to assign members: " + error.message);
+    } finally {
+      setAssigningTask(null);
     }
   };
 
@@ -112,12 +168,49 @@ export default function ProjectDetail() {
   };
 
   const getTasksByStatus = (status) => {
-    return tasks.filter((task) => task.status === status);
+    let filteredTasks = tasks.filter((task) => task.status === status);
+    
+    // Apply assignee filter
+    if (assigneeFilter === "me") {
+      filteredTasks = filteredTasks.filter(task => {
+        // Check both old single assignee and new multi-assignee
+        if (task.assignees && task.assignees.length > 0) {
+          return task.assignees.some(a => a.firebaseUid === user.uid);
+        }
+        return task.assigneeUserId === user.uid;
+      });
+    } else if (assigneeFilter === "unassigned") {
+      filteredTasks = filteredTasks.filter(task => {
+        const hasMultiAssignees = task.assignees && task.assignees.length > 0;
+        const hasSingleAssignee = task.assigneeUserId;
+        return !hasMultiAssignees && !hasSingleAssignee;
+      });
+    } else if (assigneeFilter !== "all") {
+      // Filter by specific member
+      filteredTasks = filteredTasks.filter(task => {
+        if (task.assignees && task.assignees.length > 0) {
+          return task.assignees.some(a => a.firebaseUid === assigneeFilter);
+        }
+        return task.assigneeUserId === assigneeFilter;
+      });
+    }
+    
+    return filteredTasks;
   };
 
   const isOwnerOrAdmin = () => {
     const currentUserMember = members.find(m => m.userEmail === user.email);
     return currentUserMember && (currentUserMember.role === "OWNER" || currentUserMember.role === "ADMIN");
+  };
+
+  const getAssigneeName = (assigneeId) => {
+    if (!assigneeId) return null;
+    
+    const member = members.find(m => m.firebaseUid === assigneeId);
+    
+    if (!member) return "Unknown";
+    
+    return member.displayName || member.userEmail || "Unknown User";
   };
 
   if (loading) {
@@ -247,7 +340,6 @@ export default function ProjectDetail() {
       {/* Content Area */}
       <div className="py-8 px-6 lg:px-12 max-w-7xl mx-auto">
         {activeTab === "tasks" ? (
-          // Kanban Board
           <>
             {/* Stats */}
             <div className="flex gap-6 mb-8">
@@ -265,29 +357,86 @@ export default function ProjectDetail() {
               </div>
             </div>
 
+            {/* Assignee Filter */}
+            <div className="mb-8 flex items-center justify-between bg-white rounded-2xl p-4 border-2 border-gray-100 shadow-md">
+              <div className="flex items-center gap-4">
+                <label className="text-sm font-bold text-gray-900">Filter by Assignee:</label>
+                <select
+                  value={assigneeFilter}
+                  onChange={(e) => setAssigneeFilter(e.target.value)}
+                  className="px-4 py-2 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-gray-900 font-medium text-gray-900 cursor-pointer hover:border-gray-300 transition-colors"
+                >
+                  <option value="all">All Tasks ({tasks.length})</option>
+                  <option value="me">My Tasks ({tasks.filter(t => {
+                    if (t.assignees && t.assignees.length > 0) {
+                      return t.assignees.some(a => a.firebaseUid === user.uid);
+                    }
+                    return t.assigneeUserId === user.uid;
+                  }).length})</option>
+                  <option value="unassigned">Unassigned ({tasks.filter(t => {
+                    const hasMulti = t.assignees && t.assignees.length > 0;
+                    const hasSingle = t.assigneeUserId;
+                    return !hasMulti && !hasSingle;
+                  }).length})</option>
+                  {members.length > 0 && <option disabled>──────────</option>}
+                  {members.map(member => (
+                    <option key={member.id} value={member.firebaseUid}>
+                      {member.displayName || member.userEmail} ({tasks.filter(t => {
+                        if (t.assignees && t.assignees.length > 0) {
+                          return t.assignees.some(a => a.firebaseUid === member.firebaseUid);
+                        }
+                        return t.assigneeUserId === member.firebaseUid;
+                      }).length})
+                    </option>
+                  ))}
+                </select>
+              </div>
+              
+              {assigneeFilter !== "all" && (
+                <button
+                  onClick={() => setAssigneeFilter("all")}
+                  className="px-4 py-2 text-sm font-semibold text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-xl transition-all"
+                >
+                  Clear Filter
+                </button>
+              )}
+            </div>
+
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               <KanbanColumn
                 title="📋 To Do"
                 status="TODO"
                 tasks={getTasksByStatus("TODO")}
+                members={members}
                 onStatusChange={handleStatusChange}
                 onDelete={handleDeleteTask}
+                onAssign={handleMultiAssign}
+                getAssigneeName={getAssigneeName}
+                assigningTask={assigningTask}
                 colorClass="from-orange-400 to-orange-500"
               />
               <KanbanColumn
                 title="🔄 In Progress"
                 status="IN_PROGRESS"
                 tasks={getTasksByStatus("IN_PROGRESS")}
+                members={members}
                 onStatusChange={handleStatusChange}
                 onDelete={handleDeleteTask}
+                onAssign={handleMultiAssign}
+                getAssigneeName={getAssigneeName}
+                assigningTask={assigningTask}
                 colorClass="from-blue-400 to-blue-500"
               />
               <KanbanColumn
                 title="✅ Done"
                 status="DONE"
                 tasks={getTasksByStatus("DONE")}
+                members={members}
                 onStatusChange={handleStatusChange}
                 onDelete={handleDeleteTask}
+                onAssign={handleMultiAssign}
+                getAssigneeName={getAssigneeName}
+                assigningTask={assigningTask}
                 colorClass="from-green-400 to-green-500"
               />
             </div>
@@ -355,7 +504,7 @@ export default function ProjectDetail() {
           onClick={() => setShowCreateModal(false)}
         >
           <div
-            className="bg-white rounded-3xl p-10 max-w-lg w-full shadow-2xl border border-gray-200 animate-scaleIn"
+            className="bg-white rounded-3xl p-10 max-w-lg w-full shadow-2xl border border-gray-200 animate-scaleIn max-h-[90vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between mb-8">
@@ -395,6 +544,14 @@ export default function ProjectDetail() {
                   placeholder="Add more details about this task..."
                 />
               </div>
+              
+              {/* Assignee Dropdown */}
+              <AssigneeDropdown
+                members={members}
+                selectedAssignee={newTask.assigneeUid}
+                onAssigneeChange={(uid) => setNewTask({ ...newTask, assigneeUid: uid })}
+              />
+
               <div className="flex gap-4 pt-4">
                 <button
                   type="button"
@@ -488,10 +645,12 @@ export default function ProjectDetail() {
   );
 }
 
-// Kanban Column Component (unchanged)
-function KanbanColumn({ title, status, tasks, onStatusChange, onDelete, colorClass }) {
+// Kanban Column Component with Multi-Assignee Support
+// eslint-disable-next-line no-unused-vars
+function KanbanColumn({ title, status, tasks, members, onStatusChange, onDelete, onAssign, getAssigneeName, assigningTask, colorClass }) {
   const statusOptions = ["TODO", "IN_PROGRESS", "DONE"];
   const currentIndex = statusOptions.indexOf(status);
+  const [showAssignDropdown, setShowAssignDropdown] = useState(null);
 
   return (
     <div className="bg-white rounded-3xl p-6 border-2 border-gray-100 shadow-xl min-h-[600px]">
@@ -521,9 +680,87 @@ function KanbanColumn({ title, status, tasks, onStatusChange, onDelete, colorCla
               <h4 className="text-lg font-bold text-gray-900 mb-2 group-hover:text-blue-600 transition-colors">
                 {task.title}
               </h4>
-              <p className="text-sm text-gray-600 mb-4 line-clamp-2">
+              <p className="text-sm text-gray-600 mb-3 line-clamp-2">
                 {task.description || "No description"}
               </p>
+
+              {/* ← UPDATED ASSIGNEE SECTION */}
+              <div className="mb-3 relative">
+                {task.assignees && task.assignees.length > 0 ? (
+                  <div className="p-2 bg-blue-50 rounded-lg border border-blue-100">
+                    {/* Stacked Avatars */}
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center -space-x-2">
+                        {task.assignees.slice(0, 3).map((assignee, idx) => (
+                          <div
+                            key={idx}
+                            className="w-7 h-7 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white text-xs font-bold border-2 border-white"
+                            title={assignee.name || assignee.email}
+                          >
+                            {(assignee.name || assignee.email)?.[0]?.toUpperCase()}
+                          </div>
+                        ))}
+                        {task.assignees.length > 3 && (
+                          <div className="w-7 h-7 bg-gray-400 rounded-full flex items-center justify-center text-white text-xs font-bold border-2 border-white">
+                            +{task.assignees.length - 3}
+                          </div>
+                        )}
+                      </div>
+                      <button
+                        onClick={() => setShowAssignDropdown(showAssignDropdown === task.id ? null : task.id)}
+                        className="text-xs text-blue-600 hover:text-blue-700 font-medium"
+                      >
+                        Edit
+                      </button>
+                    </div>
+                    {/* Assignee Names */}
+                    <div className="text-xs text-blue-700 font-semibold">
+                      {task.assignees.map(a => a.name || a.email).join(", ")}
+                    </div>
+                  </div>
+                ) : task.assigneeUserId ? (
+                  // Fallback for old single-assignee format
+                  <div className="p-2 bg-blue-50 rounded-lg border border-blue-100">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <div className="w-6 h-6 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white text-xs font-bold">
+                          {(task.assigneeName || task.assigneeEmail)?.[0]?.toUpperCase() || "?"}
+                        </div>
+                        <span className="text-xs font-semibold text-blue-700">
+                          {task.assigneeName || task.assigneeEmail || "Assigned"}
+                        </span>
+                      </div>
+                      <button
+                        onClick={() => setShowAssignDropdown(showAssignDropdown === task.id ? null : task.id)}
+                        className="text-xs text-blue-600 hover:text-blue-700 font-medium"
+                      >
+                        Edit
+                        </button>
+                    </div>
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => setShowAssignDropdown(showAssignDropdown === task.id ? null : task.id)}
+                    className="w-full p-2 border-2 border-dashed border-gray-300 rounded-lg text-xs text-gray-500 hover:border-gray-400 hover:text-gray-700 transition-all"
+                  >
+                    + Assign to people
+                  </button>
+                )}
+
+                {/* Multi-Select Dropdown */}
+                {showAssignDropdown === task.id && (
+                  <MultiAssignDropdown
+                    task={task}
+                    members={members}
+                    onAssign={(selectedMembers) => {
+                      onAssign(task.id, selectedMembers);
+                      setShowAssignDropdown(null);
+                    }}
+                    onClose={() => setShowAssignDropdown(null)}
+                    assigningTask={assigningTask === task.id}
+                  />
+                )}
+              </div>
 
               <div className="flex items-center justify-between pt-3 border-t border-gray-200">
                 <div className="flex gap-2">
