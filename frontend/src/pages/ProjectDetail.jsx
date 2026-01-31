@@ -64,7 +64,20 @@ export default function ProjectDetail() {
       const createdTask = await createTask(newTask.title, newTask.description, id, user.uid);
       
       if (newTask.assigneeUid && createdTask.id) {
-        await assignTask(createdTask.id, newTask.assigneeUid, user.uid);
+        // ✅ FIX: Find the member and pass their full details
+        const selectedMember = members.find(m => m.firebaseUid === newTask.assigneeUid);
+        
+        const assigneeName = selectedMember?.displayName || selectedMember?.userEmail;
+        const assigneeEmail = selectedMember?.userEmail;
+        
+        console.log('🔍 Assigning task on creation:', {
+          taskId: createdTask.id,
+          assigneeUid: newTask.assigneeUid,
+          assigneeName,
+          assigneeEmail
+        });
+        
+        await assignTask(createdTask.id, newTask.assigneeUid, user.uid, assigneeName, assigneeEmail);
       }
       
       setNewTask({ title: "", description: "", assigneeUid: "" });
