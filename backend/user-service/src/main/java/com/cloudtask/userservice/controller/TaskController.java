@@ -99,6 +99,23 @@ public class TaskController {
             @RequestBody AssignTaskRequest request,
             @RequestParam String requestorFirebaseUid) {
         
+        // ✅ NEW: Check permission before assigning
+        try {
+            Task task = taskService.getTaskById(taskId)
+                .orElseThrow(() -> new RuntimeException("Task not found"));
+            Long projectId = task.getProject().getId();
+            
+            if (!taskService.hasAssignPermission(projectId, requestorFirebaseUid)) {
+                Map<String, String> error = new HashMap<>();
+                error.put("error", "Permission denied. Only OWNER and ADMIN can assign tasks.");
+                return ResponseEntity.status(403).body(error);
+            }
+        } catch (Exception e) {
+            Map<String, String> error = new HashMap<>();
+            error.put("error", "Permission check failed: " + e.getMessage());
+            return ResponseEntity.status(500).body(error);
+        }
+
         // 🔍 DEBUG LOGS
         System.out.println("════════════════════════════════════════");
         System.out.println("🔍 ASSIGN TASK REQUEST RECEIVED");
@@ -374,6 +391,24 @@ public class TaskController {
             @RequestBody Map<String, Object> request,
             @RequestParam String requestorFirebaseUid) {
         
+        // ✅ NEW: Check permission before assigning
+        try {
+            Task task = taskService.getTaskById(taskId)
+                .orElseThrow(() -> new RuntimeException("Task not found"));
+            Long projectId = task.getProject().getId();
+            
+            if (!taskService.hasAssignPermission(projectId, requestorFirebaseUid)) {
+                Map<String, String> error = new HashMap<>();
+                error.put("error", "Permission denied. Only OWNER and ADMIN can assign tasks.");
+                return ResponseEntity.status(403).body(error);
+            }
+        } catch (Exception e) {
+            Map<String, String> error = new HashMap<>();
+            error.put("error", "Permission check failed: " + e.getMessage());
+            return ResponseEntity.status(500).body(error);
+        }
+
+        // 🔍 DEBUG LOGS
         System.out.println("════════════════════════════════════════");
         System.out.println("🔍 ASSIGN MULTIPLE USERS REQUEST");
         System.out.println("════════════════════════════════════════");

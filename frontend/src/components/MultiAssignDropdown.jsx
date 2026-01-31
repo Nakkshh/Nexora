@@ -19,7 +19,7 @@ export default function MultiAssignDropdown({ task, members, onAssign, onClose, 
   };
 
   return (
-    <div className="absolute top-full left-0 right-0 mt-1 bg-white border-2 border-gray-200 rounded-lg shadow-xl z-20">
+    <div className="absolute top-full left-0 right-0 mt-1 bg-white border-2 border-gray-200 rounded-lg shadow-2xl z-50">
       {/* Header */}
       <div className="p-3 border-b border-gray-200 flex items-center justify-between">
         <span className="text-sm font-bold text-gray-900">

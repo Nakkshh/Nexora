@@ -645,6 +645,128 @@ export default function ProjectDetail() {
   );
 }
 
+// Task Assignee Section with RBAC
+function TaskAssigneeSection({ task, members, showAssignDropdown, setShowAssignDropdown, onAssign, assigningTask }) {
+  const { user } = useAuth();
+  
+  // Check if current user is OWNER or ADMIN
+  const isOwnerOrAdmin = () => {
+    const currentUserMember = members.find(m => m.userEmail === user.email);
+    return currentUserMember && (currentUserMember.role === "OWNER" || currentUserMember.role === "ADMIN");
+  };
+  
+  const canEdit = isOwnerOrAdmin();
+  
+  return (
+    <div className="mb-3 relative">
+      {task.assignees && task.assignees.length > 0 ? (
+        <div className={`p-2 rounded-lg border ${
+          canEdit ? 'bg-blue-50 border-blue-100' : 'bg-gray-50 border-gray-200'
+        }`}>
+          {/* Stacked Avatars */}
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center -space-x-2">
+              {task.assignees.slice(0, 3).map((assignee, idx) => (
+                <div
+                  key={idx}
+                  className="w-7 h-7 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white text-xs font-bold border-2 border-white"
+                  title={assignee.name || assignee.email}
+                >
+                  {(assignee.name || assignee.email)?.[0]?.toUpperCase()}
+                </div>
+              ))}
+              {task.assignees.length > 3 && (
+                <div className="w-7 h-7 bg-gray-400 rounded-full flex items-center justify-center text-white text-xs font-bold border-2 border-white">
+                  +{task.assignees.length - 3}
+                </div>
+              )}
+            </div>
+            
+            {/* Show Edit button ONLY for OWNER/ADMIN */}
+            {canEdit ? (
+              <button
+                onClick={() => setShowAssignDropdown(showAssignDropdown === task.id ? null : task.id)}
+                className="text-xs text-blue-600 hover:text-blue-700 font-medium"
+              >
+                Edit
+              </button>
+            ) : (
+              <span className="text-xs text-gray-400 italic">View only</span>
+            )}
+          </div>
+          
+          {/* Assignee Names */}
+          <div className={`text-xs font-semibold ${
+            canEdit ? 'text-blue-700' : 'text-gray-600'
+          }`}>
+            {task.assignees.map(a => a.name || a.email).join(", ")}
+          </div>
+        </div>
+      ) : task.assigneeUserId ? (
+        // Fallback for old single-assignee format
+        <div className={`p-2 rounded-lg border ${
+          canEdit ? 'bg-blue-50 border-blue-100' : 'bg-gray-50 border-gray-200'
+        }`}>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className="w-6 h-6 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white text-xs font-bold">
+                {(task.assigneeName || task.assigneeEmail)?.[0]?.toUpperCase() || "?"}
+              </div>
+              <span className={`text-xs font-semibold ${
+                canEdit ? 'text-blue-700' : 'text-gray-600'
+              }`}>
+                {task.assigneeName || task.assigneeEmail || "Assigned"}
+              </span>
+            </div>
+            
+            {/* Show Edit button ONLY for OWNER/ADMIN */}
+            {canEdit ? (
+              <button
+                onClick={() => setShowAssignDropdown(showAssignDropdown === task.id ? null : task.id)}
+                className="text-xs text-blue-600 hover:text-blue-700 font-medium"
+              >
+                Edit
+              </button>
+            ) : (
+              <span className="text-xs text-gray-400 italic">View only</span>
+            )}
+          </div>
+        </div>
+      ) : (
+        // Unassigned - Show assign button ONLY for OWNER/ADMIN
+        <>
+          {canEdit ? (
+            <button
+              onClick={() => setShowAssignDropdown(showAssignDropdown === task.id ? null : task.id)}
+              className="w-full p-2 border-2 border-dashed border-gray-300 rounded-lg text-xs text-gray-500 hover:border-gray-400 hover:text-gray-700 transition-all"
+            >
+              + Assign to people
+            </button>
+          ) : (
+            <div className="p-2 border-2 border-dashed border-gray-200 rounded-lg text-xs text-gray-400 text-center italic">
+              Unassigned
+            </div>
+          )}
+        </>
+      )}
+
+      {/* Multi-Select Dropdown - Only show for OWNER/ADMIN */}
+      {showAssignDropdown === task.id && canEdit && (
+        <MultiAssignDropdown
+          task={task}
+          members={members}
+          onAssign={(selectedMembers) => {
+            onAssign(task.id, selectedMembers);
+            setShowAssignDropdown(null);
+          }}
+          onClose={() => setShowAssignDropdown(null)}
+          assigningTask={assigningTask === task.id}
+        />
+      )}
+    </div>
+  );
+}
+
 // Kanban Column Component with Multi-Assignee Support
 // eslint-disable-next-line no-unused-vars
 function KanbanColumn({ title, status, tasks, members, onStatusChange, onDelete, onAssign, getAssigneeName, assigningTask, colorClass }) {
@@ -674,7 +796,9 @@ function KanbanColumn({ title, status, tasks, members, onStatusChange, onDelete,
           tasks.map((task, index) => (
             <div
               key={task.id}
-              className="group bg-gray-50 hover:bg-white rounded-2xl p-5 border-2 border-gray-100 hover:border-gray-200 shadow-md hover:shadow-xl transition-all duration-300 hover:-translate-y-1"
+              className={`group bg-gray-50 hover:bg-white rounded-2xl p-5 border-2 border-gray-100 hover:border-gray-200 shadow-md hover:shadow-xl transition-all duration-300 hover:-translate-y-1 ${
+                showAssignDropdown === task.id ? 'relative z-30' : 'relative z-10'
+              }`}
               style={{ animationDelay: `${index * 50}ms` }}
             >
               <h4 className="text-lg font-bold text-gray-900 mb-2 group-hover:text-blue-600 transition-colors">
@@ -684,83 +808,15 @@ function KanbanColumn({ title, status, tasks, members, onStatusChange, onDelete,
                 {task.description || "No description"}
               </p>
 
-              {/* ← UPDATED ASSIGNEE SECTION */}
-              <div className="mb-3 relative">
-                {task.assignees && task.assignees.length > 0 ? (
-                  <div className="p-2 bg-blue-50 rounded-lg border border-blue-100">
-                    {/* Stacked Avatars */}
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="flex items-center -space-x-2">
-                        {task.assignees.slice(0, 3).map((assignee, idx) => (
-                          <div
-                            key={idx}
-                            className="w-7 h-7 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white text-xs font-bold border-2 border-white"
-                            title={assignee.name || assignee.email}
-                          >
-                            {(assignee.name || assignee.email)?.[0]?.toUpperCase()}
-                          </div>
-                        ))}
-                        {task.assignees.length > 3 && (
-                          <div className="w-7 h-7 bg-gray-400 rounded-full flex items-center justify-center text-white text-xs font-bold border-2 border-white">
-                            +{task.assignees.length - 3}
-                          </div>
-                        )}
-                      </div>
-                      <button
-                        onClick={() => setShowAssignDropdown(showAssignDropdown === task.id ? null : task.id)}
-                        className="text-xs text-blue-600 hover:text-blue-700 font-medium"
-                      >
-                        Edit
-                      </button>
-                    </div>
-                    {/* Assignee Names */}
-                    <div className="text-xs text-blue-700 font-semibold">
-                      {task.assignees.map(a => a.name || a.email).join(", ")}
-                    </div>
-                  </div>
-                ) : task.assigneeUserId ? (
-                  // Fallback for old single-assignee format
-                  <div className="p-2 bg-blue-50 rounded-lg border border-blue-100">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <div className="w-6 h-6 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white text-xs font-bold">
-                          {(task.assigneeName || task.assigneeEmail)?.[0]?.toUpperCase() || "?"}
-                        </div>
-                        <span className="text-xs font-semibold text-blue-700">
-                          {task.assigneeName || task.assigneeEmail || "Assigned"}
-                        </span>
-                      </div>
-                      <button
-                        onClick={() => setShowAssignDropdown(showAssignDropdown === task.id ? null : task.id)}
-                        className="text-xs text-blue-600 hover:text-blue-700 font-medium"
-                      >
-                        Edit
-                        </button>
-                    </div>
-                  </div>
-                ) : (
-                  <button
-                    onClick={() => setShowAssignDropdown(showAssignDropdown === task.id ? null : task.id)}
-                    className="w-full p-2 border-2 border-dashed border-gray-300 rounded-lg text-xs text-gray-500 hover:border-gray-400 hover:text-gray-700 transition-all"
-                  >
-                    + Assign to people
-                  </button>
-                )}
-
-                {/* Multi-Select Dropdown */}
-                {showAssignDropdown === task.id && (
-                  <MultiAssignDropdown
-                    task={task}
-                    members={members}
-                    onAssign={(selectedMembers) => {
-                      onAssign(task.id, selectedMembers);
-                      setShowAssignDropdown(null);
-                    }}
-                    onClose={() => setShowAssignDropdown(null)}
-                    assigningTask={assigningTask === task.id}
-                  />
-                )}
-              </div>
+              {/* ← RBAC ASSIGNEE SECTION */}
+              <TaskAssigneeSection
+                task={task}
+                members={members}
+                showAssignDropdown={showAssignDropdown}
+                setShowAssignDropdown={setShowAssignDropdown}
+                onAssign={onAssign}
+                assigningTask={assigningTask}
+              />
 
               <div className="flex items-center justify-between pt-3 border-t border-gray-200">
                 <div className="flex gap-2">

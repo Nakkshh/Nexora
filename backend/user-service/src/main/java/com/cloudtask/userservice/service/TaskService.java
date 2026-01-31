@@ -1,9 +1,9 @@
 package com.cloudtask.userservice.service;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.ArrayList;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -295,4 +295,67 @@ public class TaskService {
         
         return taskRepository.save(task);
     }  
+
+    // ========================================
+    // NEW: RBAC PERMISSION CHECKS
+    // ========================================
+
+    /**
+     * Check if user has permission to assign tasks
+     * Only OWNER and ADMIN can assign
+     */
+    public boolean hasAssignPermission(Long projectId, String firebaseUid) {
+        // Find project
+        Optional<Project> projectOpt = projectRepository.findById(projectId);
+        if (projectOpt.isEmpty()) {
+            return false;
+        }
+        Project project = projectOpt.get();
+        
+        // Find all members of the project
+        List<ProjectMember> members = projectMemberRepository.findByProject(project);
+        
+        // Find the specific member with matching firebaseUid
+        Optional<ProjectMember> memberOpt = members.stream()
+            .filter(m -> m.getUser().getFirebaseUid().equals(firebaseUid))
+            .findFirst();
+        
+        if (memberOpt.isEmpty()) {
+            return false;
+        }
+        
+        ProjectMember member = memberOpt.get();
+        ProjectMember.MemberRole role = member.getRole();
+        
+        // Only OWNER and ADMIN can assign tasks
+        return role == ProjectMember.MemberRole.OWNER || 
+            role == ProjectMember.MemberRole.ADMIN;
+    }
+
+    /**
+     * Get user's role in a project
+     */
+    public String getUserRole(Long projectId, String firebaseUid) {
+        // Find project
+        Optional<Project> projectOpt = projectRepository.findById(projectId);
+        if (projectOpt.isEmpty()) {
+            return "NONE";
+        }
+        Project project = projectOpt.get();
+        
+        // Find all members
+        List<ProjectMember> members = projectMemberRepository.findByProject(project);
+        
+        // Find specific member
+        Optional<ProjectMember> memberOpt = members.stream()
+            .filter(m -> m.getUser().getFirebaseUid().equals(firebaseUid))
+            .findFirst();
+        
+        if (memberOpt.isEmpty()) {
+            return "NONE";
+        }
+        
+        // Convert ENUM to String
+        return memberOpt.get().getRole().name();
+    }
 }
