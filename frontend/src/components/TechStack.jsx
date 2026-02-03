@@ -11,15 +11,12 @@ const techStack = [
     isVercel: true
   },
   { name: "PostgreSQL", logo: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/postgresql/postgresql-original.svg" },
-  // Empty placeholder
   { name: "", logo: "", isEmpty: true },
-  // Render with better logo source
   { 
     name: "Render",
     logo: "https://avatars.githubusercontent.com/u/36424661?s=200&v=4",
     isRender: true
   },
-  // Neon with better logo source
   { 
     name: "Neon",
     logo: "https://avatars.githubusercontent.com/u/77690634?s=200&v=4",
@@ -27,45 +24,44 @@ const techStack = [
   },
 ];
 
-
 const TechStack = () => {
   return (
-    <section id="tech" className="py-32 bg-gradient-to-br from-gray-50 via-white to-gray-100">
-      <div className="max-w-7xl mx-auto px-6 text-center">
-        <h2 className="text-5xl md:text-6xl font-bold text-gray-900 mb-16">
+    <section id="tech" className="py-16 sm:py-24 lg:py-32 bg-gradient-to-br from-gray-50 via-white to-gray-100">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 mb-8 sm:mb-12 lg:mb-16">
           Powered By
         </h2>
         
-        <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-4 gap-16 max-w-6xl mx-auto">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 sm:gap-8 md:gap-12 lg:gap-16 max-w-6xl mx-auto">
           {techStack.map((tech, index) => {
-            // Skip rendering empty placeholders
+            // Hide empty placeholder on mobile, show on sm+
             if (tech.isEmpty) {
-              return <div key={`empty-${index}`} className="invisible"></div>;
+              return <div key={`empty-${index}`} className="hidden sm:block invisible"></div>;
             }
             
             return (
               <div 
                 key={tech.name} 
-                className="group p-8 rounded-3xl hover:bg-white shadow-xl hover:shadow-2xl border border-gray-100 hover:border-gray-200 transition-all duration-500 hover:scale-105"
+                className="group p-4 sm:p-6 md:p-8 rounded-2xl sm:rounded-3xl hover:bg-white shadow-lg sm:shadow-xl hover:shadow-2xl border border-gray-100 hover:border-gray-200 transition-all duration-500 hover:scale-105"
               >
-                <div className={`w-20 h-20 mx-auto mb-6 flex items-center justify-center rounded-xl ${
-                  tech.isVercel ? 'bg-black p-3' : 
-                  tech.isRender ? 'bg-white p-2 border-2 border-gray-200' : 
-                  tech.isNeon ? 'bg-black p-2' : 
+                <div className={`w-12 h-12 sm:w-16 sm:h-16 md:w-20 md:h-20 mx-auto mb-3 sm:mb-4 md:mb-6 flex items-center justify-center rounded-lg sm:rounded-xl ${
+                  tech.isVercel ? 'bg-black p-2 sm:p-3' : 
+                  tech.isRender ? 'bg-white p-1.5 sm:p-2 border-2 border-gray-200' : 
+                  tech.isNeon ? 'bg-black p-1.5 sm:p-2' : 
                   ''
                 }`}>
                   <img
                     src={tech.logo}
                     alt={tech.name}
                     className={`${
-                      tech.isVercel ? 'w-14 h-14 invert' : 
-                      tech.isRender ? 'w-16 h-16' : 
-                      tech.isNeon ? 'w-16 h-16' : 
-                      'w-20 h-20'
+                      tech.isVercel ? 'w-8 h-8 sm:w-10 sm:h-10 md:w-14 md:h-14 invert' : 
+                      tech.isRender ? 'w-9 h-9 sm:w-12 sm:h-12 md:w-16 md:h-16' : 
+                      tech.isNeon ? 'w-9 h-9 sm:w-12 sm:h-12 md:w-16 md:h-16' : 
+                      'w-12 h-12 sm:w-16 sm:h-16 md:w-20 md:h-20'
                     } object-contain group-hover:scale-110 transition-transform duration-300`}
                   />
                 </div>
-                <p className="font-bold text-lg text-gray-900">{tech.name}</p>
+                <p className="font-bold text-xs sm:text-sm md:text-base lg:text-lg text-gray-900">{tech.name}</p>
               </div>
             );
           })}
@@ -74,6 +70,5 @@ const TechStack = () => {
     </section>
   );
 };
-
 
 export default TechStack;

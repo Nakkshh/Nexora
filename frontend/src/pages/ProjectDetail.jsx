@@ -236,10 +236,10 @@ export default function ProjectDetail() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100">
-      {/* Modern Navbar */}
+      {/* Mobile-Responsive Navbar */}
       <nav className="fixed top-0 w-full z-50 bg-white/90 backdrop-blur-xl border-b border-gray-200/50 shadow-lg">
-        <div className="w-full px-6 lg:px-12">
-          <div className="flex justify-between items-center h-16">
+        <div className="w-full px-4 sm:px-6 lg:px-12">
+          <div className="flex justify-between items-center h-14 sm:h-16">
             <div className="flex items-center gap-3">
               <button
                 onClick={() => navigate("/dashboard")}
@@ -258,8 +258,9 @@ export default function ProjectDetail() {
                 <h1 className="text-2xl font-black text-gray-900">CloudTask</h1>
               </div>
             </div>
-            <div className="flex items-center gap-4">
-              <div className="hidden sm:flex items-center gap-3 px-4 py-2 bg-gray-50 rounded-2xl border border-gray-200">
+            <div className="flex items-center gap-2 sm:gap-4">
+              {/* User Info - Hidden on mobile below md, shown on tablet+ */}
+              <div className="hidden md:flex items-center gap-3 px-4 py-2 bg-gray-50 rounded-2xl border border-gray-200">
                 <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-bold text-sm">
                   {user?.displayName?.[0]?.toUpperCase() || user?.email?.[0]?.toUpperCase()}
                 </div>
@@ -268,30 +269,38 @@ export default function ProjectDetail() {
                   <p className="text-xs text-gray-500">{user?.email}</p>
                 </div>
               </div>
+              {/* Mobile: Just Avatar */}
+              <div className="md:hidden w-9 h-9 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-bold text-sm">
+                {user?.displayName?.[0]?.toUpperCase() || user?.email?.[0]?.toUpperCase()}
+              </div>
+              {/* Logout Button - Icon on mobile, text on desktop */}
               <button
                 onClick={handleLogout}
-                className="px-6 py-2 text-sm font-semibold text-gray-700 hover:text-gray-900 border border-gray-200 rounded-2xl hover:border-gray-300 hover:bg-gray-50 transition-all duration-300"
+                className="px-3 py-2 sm:px-6 text-xs sm:text-sm font-semibold text-gray-700 hover:text-gray-900 border border-gray-200 rounded-xl sm:rounded-2xl hover:border-gray-300 hover:bg-gray-50 transition-all duration-300"
               >
-                Logout
+                <span className="hidden sm:inline">Logout</span>
+                <svg className="w-5 h-5 sm:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                </svg>
               </button>
             </div>
           </div>
         </div>
       </nav>
 
-      {/* Project Header */}
-      <div className="pt-24 pb-8 px-6 lg:px-12 max-w-7xl mx-auto border-b border-gray-200">
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6 mb-6">
+      {/* Mobile-Responsive Project Header */}
+      <div className="pt-16 sm:pt-20 md:pt-24 pb-6 sm:pb-8 px-4 sm:px-6 lg:px-12 max-w-7xl mx-auto border-b border-gray-200">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 sm:gap-6 mb-4 sm:mb-6">
           <div>
-            <h2 className="text-5xl font-black text-gray-900 mb-2">{project?.name}</h2>
-            <p className="text-xl text-gray-600">{project?.description || "No description"}</p>
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-black text-gray-900 mb-2">{project?.name}</h2>
+            <p className="text-base sm:text-lg md:text-xl text-gray-600">{project?.description || "No description"}</p>
           </div>
           {activeTab === "tasks" && (
             <button
               onClick={() => setShowCreateModal(true)}
-              className="group relative px-8 py-4 bg-gray-900 text-white rounded-3xl font-bold shadow-2xl hover:shadow-3xl transition-all duration-300 hover:scale-105 overflow-hidden"
+              className="group relative w-full md:w-auto px-6 sm:px-8 py-3 sm:py-4 bg-gray-900 text-white rounded-2xl sm:rounded-3xl font-bold shadow-2xl hover:shadow-3xl transition-all duration-300 hover:scale-105 overflow-hidden"
             >
-              <span className="relative z-10 flex items-center gap-2">
+              <span className="relative z-10 flex items-center justify-center gap-2">
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                 </svg>
@@ -303,9 +312,9 @@ export default function ProjectDetail() {
           {activeTab === "members" && isOwnerOrAdmin() && (
             <button
               onClick={() => setShowMemberModal(true)}
-              className="group relative px-8 py-4 bg-gray-900 text-white rounded-3xl font-bold shadow-2xl hover:shadow-3xl transition-all duration-300 hover:scale-105 overflow-hidden"
+              className="group relative w-full md:w-auto px-6 sm:px-8 py-3 sm:py-4 bg-gray-900 text-white rounded-2xl sm:rounded-3xl font-bold shadow-2xl hover:shadow-3xl transition-all duration-300 hover:scale-105 overflow-hidden"
             >
-              <span className="relative z-10 flex items-center gap-2">
+              <span className="relative z-10 flex items-center justify-center gap-2">
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
                 </svg>
@@ -316,11 +325,11 @@ export default function ProjectDetail() {
           )}
         </div>
 
-        {/* Tabs */}
-        <div className="flex gap-4 border-b border-gray-200">
+        {/* Mobile-Responsive Tabs */}
+        <div className="flex gap-2 sm:gap-4 border-b border-gray-200">
           <button
             onClick={() => setActiveTab("tasks")}
-            className={`px-6 py-3 font-bold transition-all relative ${
+            className={`px-4 sm:px-6 py-2 sm:py-3 text-sm sm:text-base font-bold transition-all relative ${
               activeTab === "tasks"
                 ? "text-gray-900"
                 : "text-gray-400 hover:text-gray-600"
@@ -348,11 +357,11 @@ export default function ProjectDetail() {
       </div>
 
       {/* Content Area */}
-      <div className="py-8 px-6 lg:px-12 max-w-7xl mx-auto">
+      <div className="py-4 sm:py-6 md:py-8 px-4 sm:px-6 lg:px-12 max-w-7xl mx-auto">
         {activeTab === "tasks" ? (
           <>
-            {/* Stats */}
-            <div className="flex gap-6 mb-8">
+            {/* Mobile-Responsive Stats */}
+            <div className="flex flex-wrap gap-3 sm:gap-4 md:gap-6 mb-6 sm:mb-8">
               <div className="flex items-center gap-2">
                 <div className="w-3 h-3 bg-orange-400 rounded-full"></div>
                 <span className="text-sm font-semibold text-gray-600">{getTasksByStatus("TODO").length} To Do</span>
@@ -367,14 +376,14 @@ export default function ProjectDetail() {
               </div>
             </div>
 
-            {/* Assignee Filter */}
-            <div className="mb-8 flex items-center justify-between bg-white rounded-2xl p-4 border-2 border-gray-100 shadow-md">
-              <div className="flex items-center gap-4">
-                <label className="text-sm font-bold text-gray-900">Filter by Assignee:</label>
+            {/* Mobile-Responsive Assignee Filter */}
+            <div className="mb-6 sm:mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 bg-white rounded-2xl p-3 sm:p-4 border-2 border-gray-100 shadow-md">
+              <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 w-full sm:w-auto">
+                <label className="text-xs sm:text-sm font-bold text-gray-900">Filter by Assignee:</label>
                 <select
                   value={assigneeFilter}
                   onChange={(e) => setAssigneeFilter(e.target.value)}
-                  className="px-4 py-2 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-gray-900 font-medium text-gray-900 cursor-pointer hover:border-gray-300 transition-colors"
+                  className="w-full sm:w-auto px-3 sm:px-4 py-2 text-sm border-2 border-gray-200 rounded-xl focus:outline-none focus:border-gray-900 font-medium text-gray-900 cursor-pointer hover:border-gray-300 transition-colors"
                 >
                   <option value="all">All Tasks ({tasks.length})</option>
                   <option value="me">My Tasks ({tasks.filter(t => {
@@ -412,7 +421,7 @@ export default function ProjectDetail() {
               )}
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 overflow-x-auto pb-4">
               <KanbanColumn
                 title="📋 To Do"
                 status="TODO"
@@ -510,15 +519,15 @@ export default function ProjectDetail() {
       {/* Create Task Modal */}
       {showCreateModal && (
         <div
-          className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center px-6 z-50 animate-fadeIn"
+          className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center px-4 sm:px-6 z-50 animate-fadeIn"
           onClick={() => setShowCreateModal(false)}
         >
           <div
-            className="bg-white rounded-3xl p-10 max-w-lg w-full shadow-2xl border border-gray-200 animate-scaleIn max-h-[90vh] overflow-y-auto"
+            className="bg-white rounded-2xl sm:rounded-3xl p-6 sm:p-8 md:p-10 max-w-lg w-full shadow-2xl border border-gray-200 animate-scaleIn max-h-[90vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between mb-8">
-              <h2 className="text-3xl font-black text-gray-900">Create New Task</h2>
+              <h2 className="text-2xl sm:text-3xl font-black text-gray-900">Create New Task</h2>
               <button
                 onClick={() => setShowCreateModal(false)}
                 className="p-2 hover:bg-gray-100 rounded-2xl transition-colors"
@@ -648,15 +657,15 @@ export default function ProjectDetail() {
       {/* Add Member Modal */}
       {showMemberModal && (
         <div
-          className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center px-6 z-50 animate-fadeIn"
+          className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center px-4 sm:px-6 z-50 animate-fadeIn"
           onClick={() => setShowMemberModal(false)}
         >
           <div
-            className="bg-white rounded-3xl p-10 max-w-lg w-full shadow-2xl border border-gray-200 animate-scaleIn"
+            className="bg-white rounded-2xl sm:rounded-3xl p-6 sm:p-8 md:p-10 max-w-lg w-full shadow-2xl border border-gray-200 animate-scaleIn"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between mb-8">
-              <h2 className="text-3xl font-black text-gray-900">Add Member</h2>
+              <h2 className="text-2xl sm:text-3xl font-black text-gray-900">Add Member</h2>
               <button
                 onClick={() => setShowMemberModal(false)}
                 className="p-2 hover:bg-gray-100 rounded-2xl transition-colors"
@@ -848,11 +857,11 @@ function KanbanColumn({ title, status, tasks, members, onStatusChange, onDelete,
   const [showAssignDropdown, setShowAssignDropdown] = useState(null);
 
   return (
-    <div className="bg-white rounded-3xl p-6 border-2 border-gray-100 shadow-xl min-h-[600px]">
-      <div className="flex items-center gap-3 mb-6">
-        <div className={`w-1 h-8 bg-gradient-to-b ${colorClass} rounded-full`}></div>
-        <h3 className="text-xl font-black text-gray-900">{title}</h3>
-        <span className="ml-auto px-3 py-1 bg-gray-100 rounded-full text-sm font-bold text-gray-600">
+    <div className="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-6 border-2 border-gray-100 shadow-xl min-h-[400px] sm:min-h-[600px]">
+      <div className="flex items-center gap-2 sm:gap-3 mb-4 sm:mb-6">
+        <div className={`w-1 h-6 sm:h-8 bg-gradient-to-b ${colorClass} rounded-full`}></div>
+        <h3 className="text-lg sm:text-xl font-black text-gray-900">{title}</h3>
+        <span className="ml-auto px-2 sm:px-3 py-1 bg-gray-100 rounded-full text-xs sm:text-sm font-bold text-gray-600">
           {tasks.length}
         </span>
       </div>

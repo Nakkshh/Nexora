@@ -30,35 +30,32 @@ const Navbar = () => {
         ? 'bg-gradient-to-br from-gray-50/95 via-white/95 to-gray-100/95 shadow-2xl border-b border-gray-200/50' 
         : 'bg-gradient-to-br from-gray-50/90 via-white/90 to-gray-100/90'
     }`}>
-      <div className="w-full px-6 lg:px-12">
-        <div className="flex justify-between items-center h-16">
-          
-          {/* Logo with Icon */}
-          <Link to="/" className="flex items-center space-x-3 group">
+      <div className="w-full px-4 sm:px-6 lg:px-12">
+        <div className="flex justify-between items-center h-14 sm:h-16">
+          {/* Logo with Icon - Mobile Responsive */}
+          <Link to="/" className="flex items-center space-x-2 sm:space-x-3 group">
             <img 
               src="/cloudtask-icon.svg" 
               alt="CloudTask" 
-              className="w-10 h-10 transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3"
+              className="w-8 h-8 sm:w-10 sm:h-10 transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3"
             />
-            <span className="text-2xl font-black text-gray-900 ">
+            <span className="text-lg sm:text-2xl font-black text-gray-900">
               CloudTask
             </span>
           </Link>
-
-
           {/* Auth Buttons (Conditional) */}
-          <div className="flex items-center space-x-3">
+          <div className="flex items-center space-x-2 sm:space-x-3">
             {user ? (
               <>
                 <Link 
                   to="/dashboard"
-                  className="px-6 py-2 text-sm font-semibold text-gray-700 hover:text-gray-900 transition-all"
+                  className="hidden sm:inline-block px-4 sm:px-6 py-2 text-xs sm:text-sm font-semibold text-gray-700 hover:text-gray-900 transition-all"
                 >
                   Dashboard
                 </Link>
                 <button
                   onClick={handleLogout}
-                  className="px-6 py-2 text-sm font-semibold text-gray-700 hover:text-gray-900 border border-gray-200 rounded-2xl hover:border-gray-300 hover:bg-gray-50 transition-all duration-300"
+                  className="px-4 sm:px-6 py-2 text-xs sm:text-sm font-semibold text-gray-700 hover:text-gray-900 border border-gray-200 rounded-xl sm:rounded-2xl hover:border-gray-300 hover:bg-gray-50 transition-all duration-300"
                 >
                   Logout
                 </button>
@@ -67,13 +64,13 @@ const Navbar = () => {
               <>
                 <Link 
                   to="/login"
-                  className="px-6 py-2 text-sm font-semibold text-gray-700 hover:text-gray-900 border border-gray-200 rounded-2xl hover:border-gray-300 hover:bg-gray-50 transition-all duration-300"
+                  className="px-4 sm:px-6 py-2 text-xs sm:text-sm font-semibold text-gray-700 hover:text-gray-900 border border-gray-200 rounded-xl sm:rounded-2xl hover:border-gray-300 hover:bg-gray-50 transition-all duration-300"
                 >
                   Login
                 </Link>
                 <Link 
                   to="/register"
-                  className="bg-gray-900 text-white hover:bg-gray-800 px-6 py-2 rounded-2xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 text-sm"
+                  className="bg-gray-900 text-white hover:bg-gray-800 px-4 sm:px-6 py-2 rounded-xl sm:rounded-2xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 text-xs sm:text-sm"
                 >
                   Sign Up
                 </Link>

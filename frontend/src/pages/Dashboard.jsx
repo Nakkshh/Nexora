@@ -92,23 +92,28 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100">
-      {/* Modern Navbar */}
+      {/* Mobile-Responsive Navbar */}
       <nav className="fixed top-0 w-full z-50 bg-white/90 backdrop-blur-xl border-b border-gray-200/50 shadow-lg">
-        <div className="w-full px-6 lg:px-12">
-          <div className="flex justify-between items-center h-16">
-            {/* Logo - Far Left */}
-            <div className="flex items-center space-x-3">
-              <img 
-                src="/cloudtask-icon.svg" 
-                alt="CloudTask" 
-                className="w-10 h-10"
-              />
-              <h1 className="text-2xl font-black text-gray-900">CloudTask</h1>
+        <div className="w-full px-4 sm:px-6 lg:px-12">
+          <div className="flex justify-between items-center h-14 sm:h-16">
+            {/* Logo with invisible spacer */}
+            <div className="flex items-center gap-2 sm:gap-3">
+              {/* Invisible spacer - reserves space for back button */}
+              <div className="w-10 h-10"></div>
+              
+              <div className="flex items-center space-x-2 sm:space-x-3">
+                <img 
+                  src="/cloudtask-icon.svg" 
+                  alt="CloudTask" 
+                  className="w-8 h-8 sm:w-10 sm:h-10"
+                />
+                <h1 className="text-2xl font-black text-gray-900">CloudTask</h1>
+              </div>
             </div>
-
-            {/* User & Logout - Far Right */}
-            <div className="flex items-center gap-4">
-              <div className="hidden sm:flex items-center gap-3 px-4 py-2 bg-gray-50 rounded-2xl border border-gray-200">
+            {/* User & Logout - Mobile Responsive */}
+            <div className="flex items-center gap-2 sm:gap-4">
+              {/* User Info Card - Hidden on mobile, shown on tablet+ */}
+              <div className="hidden md:flex items-center gap-3 px-4 py-2 bg-gray-50 rounded-2xl border border-gray-200">
                 <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-bold text-sm">
                   {user?.displayName?.[0]?.toUpperCase() || user?.email?.[0]?.toUpperCase()}
                 </div>
@@ -117,27 +122,34 @@ export default function Dashboard() {
                   <p className="text-xs text-gray-500">{user?.email}</p>
                 </div>
               </div>
+              {/* Mobile: Just Avatar */}
+              <div className="md:hidden w-9 h-9 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-bold text-sm">
+                {user?.displayName?.[0]?.toUpperCase() || user?.email?.[0]?.toUpperCase()}
+              </div>
+              {/* Logout Button - Icon on mobile, text on desktop */}
               <button
                 onClick={handleLogout}
-                className="px-6 py-2 text-sm font-semibold text-gray-700 hover:text-gray-900 border border-gray-200 rounded-2xl hover:border-gray-300 hover:bg-gray-50 transition-all duration-300"
+                className="px-3 py-2 sm:px-6 text-xs sm:text-sm font-semibold text-gray-700 hover:text-gray-900 border border-gray-200 rounded-xl sm:rounded-2xl hover:border-gray-300 hover:bg-gray-50 transition-all duration-300"
               >
-                Logout
+                <span className="hidden sm:inline">Logout</span>
+                <svg className="w-5 h-5 sm:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                </svg>
               </button>
             </div>
           </div>
         </div>
       </nav>
-
-      {/* Main Content */}
-      <div className="pt-24 pb-12 px-6 lg:px-12 max-w-7xl mx-auto">
-        {/* Header Section with View Toggle */}
-        <div className="mb-12">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+      {/* Mobile-Responsive Main Content */}
+      <div className="pt-16 sm:pt-20 md:pt-24 pb-8 sm:pb-12 px-4 sm:px-6 lg:px-12 max-w-7xl mx-auto">
+        {/* Mobile-Responsive Header Section */}
+        <div className="mb-8 sm:mb-12">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 sm:gap-6">
             <div>
-              <h2 className="text-5xl font-black text-gray-900 mb-2">
+              <h2 className="text-3xl sm:text-4xl md:text-5xl font-black text-gray-900 mb-2">
                 {activeView === "projects" ? "My Projects" : "My Tasks"}
               </h2>
-              <p className="text-xl text-gray-600">
+              <p className="text-base sm:text-lg md:text-xl text-gray-600">
                 {activeView === "projects" 
                   ? `${projects.length} ${projects.length === 1 ? 'project' : 'projects'} in your workspace`
                   : `${myTasks.length} ${myTasks.length === 1 ? 'task' : 'tasks'} assigned to you`
@@ -145,12 +157,12 @@ export default function Dashboard() {
               </p>
             </div>
 
-            <div className="flex items-center gap-4">
-              {/* View Toggle */}
-              <div className="flex bg-gray-100 rounded-2xl p-1 border border-gray-200">
-                <button
-                  onClick={() => setActiveView("projects")}
-                  className={`px-6 py-2 rounded-xl font-semibold text-sm transition-all duration-300 ${
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4 w-full md:w-auto">
+            {/* View Toggle */}
+            <div className="flex bg-gray-100 rounded-2xl p-1 border border-gray-200">
+              <button
+                onClick={() => setActiveView("projects")}
+                className={`flex-1 sm:flex-none px-4 sm:px-6 py-2 rounded-xl font-semibold text-xs sm:text-sm transition-all duration-300 ${
                     activeView === "projects"
                       ? "bg-white text-gray-900 shadow-md"
                       : "text-gray-600 hover:text-gray-900"
@@ -160,7 +172,7 @@ export default function Dashboard() {
                 </button>
                 <button
                   onClick={() => setActiveView("tasks")}
-                  className={`px-6 py-2 rounded-xl font-semibold text-sm transition-all duration-300 ${
+                  className={`flex-1 sm:flex-none px-4 sm:px-6 py-2 rounded-xl font-semibold text-xs sm:text-sm transition-all duration-300 ${
                     activeView === "tasks"
                       ? "bg-white text-gray-900 shadow-md"
                       : "text-gray-600 hover:text-gray-900"
@@ -175,13 +187,13 @@ export default function Dashboard() {
                 </button>
               </div>
 
-              {/* Create Project Button - Only show in Projects view */}
+              {/* Create Project Button - Mobile Responsive */}
               {activeView === "projects" && (
                 <button
                   onClick={() => setShowCreateModal(true)}
-                  className="group relative px-8 py-4 bg-gray-900 text-white rounded-3xl font-bold shadow-2xl hover:shadow-3xl transition-all duration-300 hover:scale-105 overflow-hidden"
+                  className="group relative w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 bg-gray-900 text-white rounded-2xl sm:rounded-3xl font-bold shadow-2xl hover:shadow-3xl transition-all duration-300 hover:scale-105 overflow-hidden"
                 >
-                  <span className="relative z-10 flex items-center gap-2">
+                  <span className="relative z-10 flex items-center justify-center gap-2">
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                     </svg>
@@ -198,29 +210,29 @@ export default function Dashboard() {
         {activeView === "projects" && (
           <>
             {projects.length === 0 ? (
-              <div className="text-center py-20 bg-white rounded-3xl border-2 border-dashed border-gray-200 shadow-xl">
-                <div className="w-24 h-24 bg-gradient-to-br from-blue-100 to-purple-100 rounded-3xl mx-auto mb-6 flex items-center justify-center">
+              <div className="text-center py-12 sm:py-20 bg-white rounded-2xl sm:rounded-3xl border-2 border-dashed border-gray-200 shadow-xl px-4">
+                <div className="w-16 h-16 sm:w-24 sm:h-24 bg-gradient-to-br from-blue-100 to-purple-100 rounded-2xl sm:rounded-3xl mx-auto mb-4 sm:mb-6 flex items-center justify-center">
                   <svg className="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
                   </svg>
                 </div>
-                <h3 className="text-2xl font-bold text-gray-900 mb-3">No projects yet</h3>
-                <p className="text-gray-600 mb-8 max-w-md mx-auto">
+                <h3 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2 sm:mb-3">No projects yet</h3>
+                <p className="text-sm sm:text-base text-gray-600 mb-6 sm:mb-8 max-w-md mx-auto px-4">
                   Create your first project to start organizing tasks and collaborating with your team
                 </p>
                 <button
                   onClick={() => setShowCreateModal(true)}
-                  className="px-8 py-4 bg-gray-900 text-white rounded-3xl font-bold shadow-2xl hover:shadow-3xl transition-all duration-300 hover:scale-105"
+                  className="px-6 sm:px-8 py-3 sm:py-4 bg-gray-900 text-white rounded-2xl sm:rounded-3xl font-bold shadow-2xl hover:shadow-3xl transition-all duration-300 hover:scale-105"
                 >
                   Create Your First Project
                 </button>
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 md:gap-8">
                 {projects.map((project, index) => (
                   <div
                     key={project.id}
-                    className="group relative bg-white rounded-3xl p-8 border-2 border-gray-100 hover:border-gray-200 shadow-xl hover:shadow-3xl transition-all duration-500 cursor-pointer hover:-translate-y-2"
+                    className="group relative bg-white rounded-2xl sm:rounded-3xl p-6 sm:p-8 border-2 border-gray-100 hover:border-gray-200 shadow-xl hover:shadow-3xl transition-all duration-500 cursor-pointer hover:-translate-y-2"
                     style={{ animationDelay: `${index * 100}ms` }}
                     onClick={() => navigate(`/project/${project.id}`)}
                   >
@@ -234,7 +246,7 @@ export default function Dashboard() {
 
                     {/* Content */}
                     <div className="relative">
-                      <h3 className="text-2xl font-bold text-gray-900 mb-3 group-hover:text-blue-600 transition-colors">
+                      <h3 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2 sm:mb-3 group-hover:text-blue-600 transition-colors">
                         {project.name}
                       </h3>
                       <p className="text-gray-600 mb-6 line-clamp-2 min-h-[3rem]">
@@ -286,11 +298,11 @@ export default function Dashboard() {
                 </p>
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                 {myTasks.map((task) => (
                   <div
                     key={task.id}
-                    className="bg-white rounded-2xl p-6 border border-gray-200 shadow-md hover:shadow-xl transition-all duration-300"
+                    className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 border border-gray-200 shadow-md hover:shadow-xl transition-all duration-300"
                   >
                     <div className="flex items-start justify-between mb-4">
                       <h3 className="text-lg font-bold text-gray-900 flex-1">{task.title}</h3>
@@ -328,18 +340,18 @@ export default function Dashboard() {
         )}
       </div>
 
-      {/* Create Project Modal */}
+      {/* Mobile-Responsive Create Project Modal */}
       {showCreateModal && (
         <div
-          className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center px-6 z-50 animate-fadeIn"
+          className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center px-4 sm:px-6 z-50 animate-fadeIn"
           onClick={() => setShowCreateModal(false)}
         >
           <div
-            className="bg-white rounded-3xl p-10 max-w-lg w-full shadow-2xl border border-gray-200 animate-scaleIn"
+            className="bg-white rounded-2xl sm:rounded-3xl p-6 sm:p-8 md:p-10 max-w-lg w-full shadow-2xl border border-gray-200 animate-scaleIn"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between mb-8">
-              <h2 className="text-3xl font-black text-gray-900">Create New Project</h2>
+              <h2 className="text-2xl sm:text-3xl font-black text-gray-900">Create New Project</h2>
               <button
                 onClick={() => setShowCreateModal(false)}
                 className="p-2 hover:bg-gray-100 rounded-2xl transition-colors"
