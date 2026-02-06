@@ -14,7 +14,7 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping("/api/project/{projectId}/members")
 @RequiredArgsConstructor
-@CrossOrigin(origins = {"http://localhost:5173", "https://cloudtask-prod.vercel.app"})
+@CrossOrigin(origins = {"http://localhost:5173", "https://nexora-prod.vercel.app"})
 public class ProjectMemberController {
 
     private final ProjectMemberService projectMemberService;

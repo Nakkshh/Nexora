@@ -1,18 +1,18 @@
 package com.cloudtask.userservice.controller;
 
+import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.Map;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.Map;
-
 @RestController
 @RequestMapping("/api")
-@CrossOrigin(origins = {"http://localhost:5173", "https://cloudtask-prod.vercel.app"})
+@CrossOrigin(origins = {"http://localhost:5173", "https://nexora-prod.vercel.app"})
 public class HealthController {
     
     private final LocalDateTime startTime = LocalDateTime.now();
@@ -21,7 +21,7 @@ public class HealthController {
     public ResponseEntity<Map<String, Object>> health() {
         Map<String, Object> healthStatus = new HashMap<>();
         healthStatus.put("status", "UP");
-        healthStatus.put("service", "CloudTask Backend");
+        healthStatus.put("service", "Nexora Backend");
         healthStatus.put("timestamp", LocalDateTime.now());
         healthStatus.put("uptime", "Server started at: " + startTime);
         return ResponseEntity.ok(healthStatus);

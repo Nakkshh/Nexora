@@ -2,8 +2,8 @@
 
 > Cloud-native task and project management platform with role-based access control and real-time collaboration.
 
-[![Live Demo](https://img.shields.io/badge/demo-live-success?style=for-the-badge)](https://cloudtask-prod.vercel.app)
-[![GitHub](https://img.shields.io/badge/github-repository-blue?style=for-the-badge&logo=github)](https://github.com/nakkshh/cloudtask)
+[![Live Demo](https://img.shields.io/badge/demo-live-success?style=for-the-badge)](https://nexora-prod.vercel.app)
+[![GitHub](https://img.shields.io/badge/github-repository-blue?style=for-the-badge&logo=github)](https://github.com/nakkshh/nexora)
 [![License](https://img.shields.io/badge/license-MIT-green?style=for-the-badge)](LICENSE)
 
 ---
@@ -79,7 +79,7 @@ Comprehensive documentation is available in the `docs/` folder:
 ### Clone Repository
 
 ```bash
-git clone https://github.com/nakkshh/cloudtask.git
+git clone https://github.com/nakkshh/nexora.git
 cd cloudtask
 ```
 
@@ -121,7 +121,7 @@ Frontend runs on `http://localhost:5173`
 
 ## 🌐 Live Demo
 
-- **Frontend:** [https://cloudtask-prod.vercel.app](https://cloudtask-prod.vercel.app)
+- **Frontend:** [https://nexora-prod.vercel.app](https://nexora-prod.vercel.app)
 - **Backend API:** [https://cloudtask-backend.onrender.com/api](https://cloudtask-backend.onrender.com/api)
 
 **Note:** Backend may take 30-50 seconds to wake up on first request (free tier)
@@ -330,14 +330,14 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 If you have any questions or need help:
 
 - 📧 **Email:** nakshtrjain25@gmail.com
-- 🐛 **Issues:** [GitHub Issues](https://github.com/nakkshh/cloudtask/issues)
+- 🐛 **Issues:** [GitHub Issues](https://github.com/nakkshh/nexora/issues)
 - 📖 **Docs:** Check the `docs/` folder
 
 ---
 
 ## ⭐ Show Your Support
 
-If you like this project, please give it a ⭐ on [GitHub](https://github.com/nakkshh/cloudtask)!
+If you like this project, please give it a ⭐ on [GitHub](https://github.com/nakkshh/nexora)!
 
 ---
 

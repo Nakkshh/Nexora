@@ -17,7 +17,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/task")
 @RequiredArgsConstructor
-@CrossOrigin(origins = {"http://localhost:5173", "https://cloudtask-prod.vercel.app"})
+@CrossOrigin(origins = {"http://localhost:5173", "https://nexora-prod.vercel.app"})
 public class TaskController {
 
     private final TaskService taskService;

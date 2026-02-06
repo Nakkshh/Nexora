@@ -22,7 +22,7 @@ public class SecurityConfig {
         // Allow both local and deployed frontend
         config.setAllowedOrigins(Arrays.asList(
             "http://localhost:5173",
-            "https://cloudtask-prod.vercel.app"
+            "https://nexora-prod.vercel.app"
         ));
         
         config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
